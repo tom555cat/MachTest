@@ -105,6 +105,48 @@ int getProcessorInfo() {
     
     return 0;
 }
+
+/// 打印处理器集中的任务信息
+int processorSetInfo() {
+    host_t myhost = mach_host_self();
+    mach_port_t psDefault;
+    mach_port_t psDefault_control;
+    // tasks中保存的是mach_port_t
+    task_array_t tasks;
+    mach_msg_type_number_t numTasks;
+    int t;
+    
+    kern_return_t kr;
+    
+    // 获得默认的处理器集
+    kr = processor_set_default(myhost, &psDefault);
+    
+    // 请求访问控制端口
+    kr = host_processor_set_priv(myhost, psDefault, &psDefault_control);
+    if (kr != KERN_SUCCESS) {
+        fprintf(stderr, "host_processor_set_priv - %d", kr);
+        exit(1);
+    }
+    
+    // 获得任务，在iOS上无法获得PID 0（kernel_task）
+    kr = processor_set_tasks(psDefault_control, &tasks, &numTasks);
+    if (kr != KERN_SUCCESS) {
+        fprintf(stderr, "processor_set_tasks - %d \n", kr);
+        exit(2);
+    }
+    
+    // 遍历所有任务
+    // ** 这段代码通过"pid_for_task"将任务端口映射到对应BSD进程ID
+    for (t = 0; t < numTasks; t++) {
+        int pid;
+        // 从这里可以看出task对应的mach_port_t和PID是不相等的
+        pid_for_task(tasks[t], &pid);
+        printf("Task: %d pid: %d\n", tasks[t], pid);
+    }
+    
+    return 0;
+}
+
 int main(int argc, const char * argv[]) {
     @autoreleasepool {
         // insert code here...
@@ -122,7 +164,10 @@ int main(int argc, const char * argv[]) {
         //        Slave processors Intel x86-64h Haswell in slot 5
         //        Slave processors Intel x86-64h Haswell in slot 6
         //        Slave processors Intel x86-64h Haswell in slot 7
-        getProcessorInfo();
+        //getProcessorInfo();
+        
+        //
+        processorSetInfo();
     }
     return 0;
 }
