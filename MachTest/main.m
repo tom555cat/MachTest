@@ -13,6 +13,7 @@
 #import <mach-o/arch.h>
 
 void doTaskInfo(task_t Task);
+int doTaskThreadInfo(task_t Task);
 
 /// 类似于HostInfo的工具
 int HostInfo() {
@@ -146,6 +147,7 @@ int processorSetInfo() {
         printf("Task: %d pid: %d\n", tasks[t], pid);
         
         doTaskInfo(tasks[t]);
+        doTaskThreadInfo(tasks[t]);
     }
     
     return 0;
@@ -224,6 +226,56 @@ void doTaskInfo(task_t Task) {
         printf("Task has tampered with others\n");
     }
 #endif
+}
+
+/// 打印任务中每个线程的详细信息
+/// @param Task 任务
+int doTaskThreadInfo(task_t Task) {
+    thread_act_array_t threads;
+    mach_msg_type_number_t threadNum;
+    char infoBuf[THREAD_INFO_MAX];
+    mach_msg_type_number_t infoSize;
+    
+    struct thread_basic_info *tbi;
+    
+    int p;
+    
+    kern_return_t kr;
+    
+    kr = task_threads(Task, &threads, &threadNum);
+    
+    if (kr != KERN_SUCCESS) {
+        fprintf(stderr, "task_threads failed!");
+        exit(1);
+    }
+    
+    for (p = 0; p < threadNum; p++) {
+        infoSize = THREAD_INFO_MAX;
+        kr = thread_info(threads[p], THREAD_BASIC_INFO, (thread_info_t)infoBuf, &infoSize);
+        if (kr != KERN_SUCCESS) {
+            fprintf(stderr, "thread_info failed!");
+            exit(2);
+        }
+        tbi = (struct thread_basic_info *)infoBuf;
+//        struct thread_basic_info {
+//            time_value_t    user_time;      /* user run time */
+//            time_value_t    system_time;    /* system run time */
+//            integer_t       cpu_usage;      /* scaled cpu usage percentage */
+//            policy_t        policy;         /* scheduling policy in effect */
+//            integer_t       run_state;      /* run state (see below) */
+//            integer_t       flags;          /* various flags (see below) */
+//            integer_t       suspend_count;  /* suspend count for thread */
+//            integer_t       sleep_time;     /* number of seconds that thread
+//                                             *  has been sleeping */
+//        };
+        printf("\tThread %d info:\n", threads[p]);
+        printf("\t\tuser_time/system_time: %d/%d\n",tbi->user_time, tbi->system_time);
+        printf("\t\tcpu_usage: %d\n",tbi->cpu_usage);
+        printf("\t\trun_state: %d\n",tbi->run_state);
+        printf("\t\tsuspend_count: %d\n",tbi->suspend_count);
+    }
+    
+    return 0;
 }
 
 int main(int argc, const char * argv[]) {
