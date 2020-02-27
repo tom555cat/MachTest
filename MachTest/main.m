@@ -12,6 +12,8 @@
 #import <mach/processor.h>
 #import <mach-o/arch.h>
 
+void doTaskInfo(task_t Task);
+
 /// 类似于HostInfo的工具
 int HostInfo() {
     // 获取主机端口，在host_self()内部调用的是mach_host_self()
@@ -142,9 +144,86 @@ int processorSetInfo() {
         // 从这里可以看出task对应的mach_port_t和PID是不相等的
         pid_for_task(tasks[t], &pid);
         printf("Task: %d pid: %d\n", tasks[t], pid);
+        
+        doTaskInfo(tasks[t]);
     }
     
     return 0;
+}
+
+/// 输出Task详细信息
+/// @param Task task_t
+void doTaskInfo(task_t Task) {
+    mach_msg_type_number_t infoSize;
+    
+    char infoBuf[TASK_INFO_MAX];
+    struct task_basic_info_64 *tbi;
+    struct task_events_info *tei;
+    
+#if LION
+    struct task_kernelmemory_info_t *tkmi;
+    struct task_extmod_info *texi;
+    struct vm_extmod_statistics *vec;
+#endif
+    
+    kern_return_t kr;
+    infoSize = TASK_INFO_MAX;
+    kr = task_info(Task,
+                   TASK_BASIC_INFO_64,
+                   (task_info_t)infoBuf,
+                   &infoSize);
+    tbi = (struct task_basic_info_64 *)infoBuf;
+    
+    printf("\tSuspend Count: %d\n", tbi->suspend_count);
+    printf("\tMemory: %lluM virtual, %lluK resident\n", tbi->virtual_size/(1024 * 1024), tbi->resident_size/1024);
+    printf("\tSystem/User Time: %ld/%ld\n", tbi->system_time, tbi->user_time);
+    
+    infoSize = TASK_INFO_MAX;  // 需要重置。
+    kr = task_info(Task,
+                   TASK_EVENTS_INFO,
+                   (task_info_t)infoBuf,
+                   &infoSize);
+    
+    tei = (struct task_events_info *)infoBuf;
+    printf("Faults: %d, Page-Ins: %d, COW: %d\n", tei->faults, tei->pageins, tei->cow_faults);
+    printf("Messages : %d sent, %d received\n", tei->messages_sent, tei->messages_received);
+    printf("Syscalls: %d Mach, %d UNIX\n", tei->syscalls_mach, tei->syscalls_unix);
+    
+#if LION
+    infoSize = TASK_INFO_MAX;
+    kr = task_info(Task,
+                   TASK_KERNELMEMORY_INFO,
+                   (task_info_t)infoBuf,
+                   &infoSize);
+    tkmi = (struct task_kernelmemory_info *)infoBuf;
+    printf("Kernel memory: Private: %dK allocated %dK freed, Shared: %dK allocated, %dK freed\n",
+           tkmi->total_palloc/1024, tkmi->total_pfree/1024,
+           tkmi->total_salloc/1024, tkmi->total_sfree/1024);
+    
+    infoSize = TASK_INFO_MAX;
+    kr = task_info(Task,
+                   TASK_EXTMOD_INFO,
+                   (task_info_t)infoBuf,
+                   &infoSize);
+    if (kr == KERN_SUCCESS) {
+        printf("--OK\n");
+    }
+    texi = (struct vm_extmod_statistics *)infoBuf;
+    ves = &(texi->extmod_statistics);
+    
+    if (ves->task_for_pid_count) {
+        printf("Task has been looked up %ld times\n", ves->task_for_pid_count);
+    }
+    if (ves->task_for_pid_caller_count) {
+        printf("Task has looked up others %ld times\n", ves->task_for_pid_caller_count);
+    }
+    if(ves->thread_creation_count || ves->thread_set_state_count) {
+        printf("Task has been tampered with\n");
+    }
+    if (ves->thread_creation_caller_cout || ves->thread_set_state_caller_count) {
+        printf("Task has tampered with others\n");
+    }
+#endif
 }
 
 int main(int argc, const char * argv[]) {
