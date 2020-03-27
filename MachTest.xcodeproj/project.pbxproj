@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		8E1675A0240A6C34009E2EAA /* Network.c in Sources */ = {isa = PBXBuildFile; fileRef = 8E16759F240A6C34009E2EAA /* Network.c */; };
 		8E16DA572408ACEF0067A130 /* HostTaskThreadInfo.c in Sources */ = {isa = PBXBuildFile; fileRef = 8E16DA562408ACEF0067A130 /* HostTaskThreadInfo.c */; };
+		8ED30191241FA6CD00A303AA /* dyldHook.c in Sources */ = {isa = PBXBuildFile; fileRef = 8ED30190241FA6CD00A303AA /* dyldHook.c */; };
+		8ED30193241FAEDA00A303AA /* openHook.c in Sources */ = {isa = PBXBuildFile; fileRef = 8ED30192241FAEDA00A303AA /* openHook.c */; };
 		E9843A3E2406C332002947F7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = E9843A3D2406C332002947F7 /* main.m */; };
 /* End PBXBuildFile section */
 
@@ -29,6 +31,8 @@
 		8E16759F240A6C34009E2EAA /* Network.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = Network.c; sourceTree = "<group>"; };
 		8E16DA552408ACEF0067A130 /* HostTaskThreadInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HostTaskThreadInfo.h; sourceTree = "<group>"; };
 		8E16DA562408ACEF0067A130 /* HostTaskThreadInfo.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = HostTaskThreadInfo.c; sourceTree = "<group>"; };
+		8ED30190241FA6CD00A303AA /* dyldHook.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = dyldHook.c; sourceTree = "<group>"; };
+		8ED30192241FAEDA00A303AA /* openHook.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = openHook.c; sourceTree = "<group>"; };
 		E9843A3A2406C332002947F7 /* MachTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = MachTest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E9843A3D2406C332002947F7 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -68,6 +72,8 @@
 				8E16DA562408ACEF0067A130 /* HostTaskThreadInfo.c */,
 				8E16759E240A6C34009E2EAA /* Network.h */,
 				8E16759F240A6C34009E2EAA /* Network.c */,
+				8ED30190241FA6CD00A303AA /* dyldHook.c */,
+				8ED30192241FAEDA00A303AA /* openHook.c */,
 			);
 			path = MachTest;
 			sourceTree = "<group>";
@@ -128,7 +134,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8ED30193241FAEDA00A303AA /* openHook.c in Sources */,
 				8E16DA572408ACEF0067A130 /* HostTaskThreadInfo.c in Sources */,
+				8ED30191241FA6CD00A303AA /* dyldHook.c in Sources */,
 				8E1675A0240A6C34009E2EAA /* Network.c in Sources */,
 				E9843A3E2406C332002947F7 /* main.m in Sources */,
 			);
